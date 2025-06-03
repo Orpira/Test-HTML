@@ -1,4 +1,4 @@
-import { calculateScore } from "./utils.js";
+import { calculateScore, fetchQuestions } from "./utils.js";
 
 // Función para escapar caracteres especiales en HTML
 function escapeHTML(str) {
@@ -46,7 +46,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let score = 0;
   let selectedQuestions = [];
 
-  // Determinar el archivo JSON a cargar
+  let jsonFile = fetchQuestions(testType); // Llamar a la función para obtener el archivo JSON
+
+  /* Determinar el archivo JSON a cargar
   let jsonFile = "./resources/preguntas-CSS.json"; // Por defecto, CSS
   if (testType === "html") {
     jsonFile = "./resources/preguntas-HTML.json";
@@ -59,14 +61,14 @@ document.addEventListener("DOMContentLoaded", () => {
       "Tipo de test no válido. Se cargará el test de CSS por defecto."
     );
   }
+  */
 
   // Mostrar el tipo de test en la consola para depuración
   console.log("Tipo de test:", testType);
   console.log("Archivo JSON a cargar:", jsonFile);
 
   // Cargar el archivo JSON correspondiente
-  fetch(jsonFile)
-    .then((response) => response.json())
+  fetchQuestions(testType)
     .then((data) => {
       questions = data;
       selectRandomQuestions();
@@ -89,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
     questionElement.innerText = escapeHTML(currentQuestion.question); // Escapar caracteres especiales en la pregunta
     answerElements.forEach((answerElement, index) => {
       answerElement.nextElementSibling.innerHTML = escapeHTML(
-        currentQuestion.answers[index]
+        currentQuestion.options[index]
       ); // Escapar caracteres especiales en las respuestas
     });
   }
@@ -206,9 +208,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const listItem = document.createElement("li");
       const correctIndex = letterToIndex[question.correctAnswer]; // Convertir letra a índice
       const userAnswerText = escapeHTML(
-        question.answers[question.userAnswer] || "Sin respuesta"
+        question.options[question.userAnswer] || "Sin respuesta"
       );
-      const correctAnswerText = escapeHTML(question.answers[correctIndex]);
+      const correctAnswerText = escapeHTML(question.options[correctIndex]);
 
       // Agregar íconos y clases para estilos
       if (question.userAnswer === correctIndex) {
@@ -236,20 +238,9 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedQuestions = [];
     questionContainer.style.display = "block";
     resultadosContainer.style.display = "none";
-    // Volver a cargar las preguntas desde el mismo archivo JSON
-    fetch(jsonFile)
-      .then((response) => response.json())
-      .then((data) => {
-        questions = data;
-        selectRandomQuestions();
-        loadQuestion();
-      })
-      .catch((error) => {
-        console.error("Error al cargar el archivo JSON:", error);
-        alert(
-          "Hubo un problema al reiniciar el test. Por favor, inténtalo de nuevo."
-        );
-      });
+    // Usar las preguntas ya cargadas, sin volver a llamar a la API
+    selectRandomQuestions();
+    loadQuestion();
   }
   reiniciarButton.addEventListener("click", reiniciarTest);
   testTitle.innerText = `Test de ${testType.toUpperCase()}`;
